@@ -35,8 +35,8 @@ from ml_collections import ConfigDict
 from env.env_list import env_list
 from env.point_robot import PointRobot
 from env.boat_robot import BoatRobot
-from jaxrl5.agents import FISOR
-from jaxrl5.agents.fisor.fisor import (
+from jaxrl5.agents import VOCBF
+from jaxrl5.agents.vocbf.vocbf import (
     BCPolicy,
     AffineDynamics,
     build_vc_network,
@@ -48,9 +48,9 @@ from jaxrl5.agents.fisor.fisor import (
 FLAGS = flags.FLAGS
 flags.DEFINE_string("model_dir", "", "Path to the results directory containing model files")
 flags.DEFINE_integer("env_id", 30, "Environment index from env_list (30 = BoatRobot)")
-flags.DEFINE_integer("num_episodes", 5, "Number of evaluation episodes to plot")
+flags.DEFINE_integer("num_episodes", 500, "Number of evaluation episodes to plot")
 flags.DEFINE_float("cbf_alpha", 1.0, "CBF alpha parameter")
-flags.DEFINE_string("save_path", "trajectory_plot.png", "Where to save the figure")
+flags.DEFINE_string("save_path", "trajectory_plot1.png", "Where to save the figure")
 flags.DEFINE_bool("show", True, "Show the plot interactively")
 flags.DEFINE_integer("contour_resolution", 150, "Grid resolution for Vc contour map")
 
@@ -369,7 +369,7 @@ def load_models(model_dir, env_id):
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
 
-    # FISOR value functions
+    # VOCBF value functions
     config_dict = dict(cfg["agent_kwargs"])
     config_dict.pop("model_cls", None)
     config_dict.pop("cost_scale", None)
@@ -381,10 +381,10 @@ def load_models(model_dir, env_id):
         config_dict.pop(k, None)
     config_dict["env_max_steps"] = env_max_steps
 
-    agent = FISOR.create(cfg["seed"], env.observation_space, env.action_space, **config_dict)
+    agent = VOCBF.create(cfg["seed"], env.observation_space, env.action_space, **config_dict)
     model_file = get_latest_model_file(model_dir)
     agent = agent.load(model_file)
-    print(f"Loaded FISOR model from {model_file}")
+    print(f"Loaded VOCBF model from {model_file}")
 
     V_net = build_vc_network(agent, state_dim)
     print("Built V_net (Vc as CBF)")

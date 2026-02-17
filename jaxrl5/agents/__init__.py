@@ -1,2 +1,2 @@
-from jaxrl5.agents.fisor.fisor import FISOR
+from jaxrl5.agents.vocbf.vocbf import VOCBF
 

@@ -8,7 +8,7 @@ fully captures the barrier function.
 
 Usage:
     python launcher/viz/viz_map.py \
-        --model_location ./results/BoatRobot/vocbf_hj_BoatRobot_...
+        --model_dir ./results/BoatRobot/vocbf_hj_BoatRobot_...
 """
 import os
 import sys
@@ -25,10 +25,10 @@ from absl import app, flags
 from ml_collections import ConfigDict
 
 from env.boat_robot import BoatRobot
-from jaxrl5.agents import FISOR
+from jaxrl5.agents import VOCBF
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string("model_location", "", "Path to the results directory")
+flags.DEFINE_string("model_dir", "", "Path to the results directory")
 
 # ─── Styling ──────────────────────────────────────────────────────────────────
 label_size = 18
@@ -146,7 +146,7 @@ def draw_env_features(ax, env):
 
 
 # ─── Full figure ──────────────────────────────────────────────────────────────
-def plot_pic(env, agent, model_location):
+def plot_pic(env, agent, model_dir):
     """
     Two-panel figure:
       Left  – task map (obstacles + goal)
@@ -224,7 +224,7 @@ def plot_pic(env, agent, model_location):
         spine.set_color("white")
 
     # ── Save ─────────────────────────────────────────────────────────────
-    imgs_dir = os.path.join(model_location, "imgs")
+    imgs_dir = os.path.join(model_dir, "imgs")
     os.makedirs(imgs_dir, exist_ok=True)
     save_path = os.path.join(imgs_dir, "viz_map.png")
     plt.savefig(save_path, dpi=600)
@@ -232,8 +232,8 @@ def plot_pic(env, agent, model_location):
 
 
 # ─── Load model ───────────────────────────────────────────────────────────────
-def load_model(model_location):
-    with open(os.path.join(model_location, "config.json"), "r") as f:
+def load_model(model_dir):
+    with open(os.path.join(model_dir, "config.json"), "r") as f:
         cfg = to_config_dict(json.load(f))
 
     env = BoatRobot(id=0, seed=0)
@@ -241,7 +241,7 @@ def load_model(model_location):
     config_dict = dict(cfg["agent_kwargs"])
     config_dict.pop("model_cls", None)
     config_dict.pop("cost_scale", None)
-    # Remove BC / dynamics / CBF params that FISOR.create doesn't accept
+    # Remove BC / dynamics / CBF params that VOCBF.create doesn't accept
     for k in [
         "bc_hidden_dim", "bc_num_layers", "bc_lr", "bc_epochs",
         "dyn_hidden_dim", "dyn_num_layers", "dyn_lr", "dyn_epochs",
@@ -251,22 +251,22 @@ def load_model(model_location):
 
     config_dict["env_max_steps"] = env._max_episode_steps
 
-    agent = FISOR.create(
+    agent = VOCBF.create(
         cfg["seed"], env.observation_space, env.action_space, **config_dict
     )
-    model_file = get_latest_pickle(model_location)
+    model_file = get_latest_pickle(model_dir)
     agent = agent.load(model_file)
-    print(f"Loaded FISOR model from {model_file}")
+    print(f"Loaded VOCBF model from {model_file}")
 
-    os.makedirs(os.path.join(model_location, "imgs"), exist_ok=True)
+    os.makedirs(os.path.join(model_dir, "imgs"), exist_ok=True)
 
     return env, agent
 
 
 # ─── Entry ────────────────────────────────────────────────────────────────────
 def main(_):
-    env, agent = load_model(FLAGS.model_location)
-    plot_pic(env, agent, FLAGS.model_location)
+    env, agent = load_model(FLAGS.model_dir)
+    plot_pic(env, agent, FLAGS.model_dir)
 
 
 if __name__ == "__main__":

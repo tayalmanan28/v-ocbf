@@ -17,9 +17,9 @@ from env.env_list import env_list
 from env.point_robot import PointRobot
 from env.boat_robot import BoatRobot
 from jaxrl5.wrappers import wrap_gym
-from jaxrl5.agents import FISOR
-from jaxrl5.agents.fisor.fisor import (
-    BCPolicy, AffineDynamics, evaluate_cbf, torchify, mlp, DEFAULT_DEVICE,
+from jaxrl5.agents import VOCBF
+from jaxrl5.agents.vocbf.vocbf import (
+    BCPolicy, AffineDynamics, evaluate_cbf, torchify, DEFAULT_DEVICE,
     build_vc_network,
 )
 from jaxrl5.data.dsrl_datasets import DSRLDataset
@@ -92,32 +92,48 @@ def train_bc_policy(dataset, state_dim, action_dim, hidden_dim=256,
 
 def train_dynamics_model(dataset, state_dim, action_dim, hidden_dim=64,
                          num_layers=3, lr=1e-3, epochs=100, batch_size=256,
-                         dt=0.1):
+                         dt=0.05, val_ratio=0.2, patience=30):
     """Train a control-affine dynamics model on the offline dataset."""
     model = AffineDynamics(
         num_action=action_dim, state_dim=state_dim,
         hidden_dim=hidden_dim, num_layers=num_layers, dt=dt
     ).to(DEFAULT_DEVICE)
     optimizer = optim.Adam(model.parameters(), lr=lr)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, patience=10, factor=0.5
+    )
 
     observations = torch.FloatTensor(dataset.dataset_dict['observations']).to(DEFAULT_DEVICE)
     actions = torch.FloatTensor(dataset.dataset_dict['actions']).to(DEFAULT_DEVICE)
     next_observations = torch.FloatTensor(dataset.dataset_dict['next_observations']).to(DEFAULT_DEVICE)
     n = observations.shape[0]
 
-    print(f"\n--- Training Dynamics Model ({epochs} epochs, {n} samples) ---")
+    # Train/validation split
+    n_val = int(n * val_ratio)
+    n_train = n - n_val
+    perm_all = torch.randperm(n)
+    train_idx = perm_all[:n_train]
+    val_idx = perm_all[n_train:]
+
+    train_obs, train_act, train_next = observations[train_idx], actions[train_idx], next_observations[train_idx]
+    val_obs, val_act, val_next = observations[val_idx], actions[val_idx], next_observations[val_idx]
+
+    print(f"\n--- Training Dynamics Model ({epochs} epochs, {n_train} train / {n_val} val samples, dt={dt}) ---")
+
+    best_val_loss = float('inf')
+    best_state_dict = None
+    patience_counter = 0
+
     for epoch in range(epochs):
-        perm = torch.randperm(n)
+        # --- Train ---
+        model.train()
+        perm = torch.randperm(n_train)
         total_loss = 0.
         num_batches = 0
-        for i in range(0, n, batch_size):
+        for i in range(0, n_train, batch_size):
             idx = perm[i:i + batch_size]
-            obs_batch = observations[idx]
-            act_batch = actions[idx]
-            next_obs_batch = next_observations[idx]
-
-            pred_next = model.forward_next_state(obs_batch, act_batch)
-            loss = tnn.functional.mse_loss(pred_next, next_obs_batch)
+            pred_next = model.forward_next_state(train_obs[idx], train_act[idx])
+            loss = tnn.functional.mse_loss(pred_next, train_next[idx])
 
             optimizer.zero_grad()
             loss.backward()
@@ -125,11 +141,34 @@ def train_dynamics_model(dataset, state_dim, action_dim, hidden_dim=64,
             total_loss += loss.item()
             num_batches += 1
 
-        if (epoch + 1) % 10 == 0 or epoch == 0:
-            avg_loss = total_loss / num_batches
-            print(f"  Dynamics Epoch {epoch+1}/{epochs}  Loss: {avg_loss:.6f}")
+        avg_train_loss = total_loss / num_batches
 
-    print("  Dynamics training complete.\n")
+        # --- Validate ---
+        model.eval()
+        with torch.no_grad():
+            val_pred = model.forward_next_state(val_obs, val_act)
+            val_loss = tnn.functional.mse_loss(val_pred, val_next).item()
+
+        scheduler.step(val_loss)
+
+        if (epoch + 1) % 10 == 0 or epoch == 0:
+            print(f"  Dynamics Epoch {epoch+1}/{epochs}  Train: {avg_train_loss:.6f}  Val: {val_loss:.6f}")
+
+        # Early stopping with best model saving
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            best_state_dict = {k: v.clone() for k, v in model.state_dict().items()}
+            patience_counter = 0
+        else:
+            patience_counter += 1
+            if patience_counter >= patience:
+                print(f"  Early stopping at epoch {epoch+1}. Best val loss: {best_val_loss:.6f}")
+                break
+
+    # Load best model
+    if best_state_dict is not None:
+        model.load_state_dict(best_state_dict)
+    print(f"  Dynamics training complete. Best val loss: {best_val_loss:.6f}\n")
     return model
 
 
@@ -163,13 +202,13 @@ def call_main(details):
         ds.normalize_returns(env.max_episode_reward, env.min_episode_reward, env_max_steps)
     ds.seed(details["seed"])
 
-    # --- Create FISOR agent (value functions only) ---
+    # --- Create VOCBF agent (value functions only) ---
     config_dict = dict(details['agent_kwargs'])
     config_dict['env_max_steps'] = env_max_steps
 
     model_cls = config_dict.pop("model_cls")
     config_dict.pop("cost_scale")
-    # Remove BC/dynamics/CBF params before passing to FISOR.create
+    # Remove BC/dynamics/CBF params before passing to VOCBF.create
     bc_hidden_dim = config_dict.pop("bc_hidden_dim", 256)
     bc_num_layers = config_dict.pop("bc_num_layers", 3)
     bc_lr = config_dict.pop("bc_lr", 3e-4)
@@ -177,7 +216,7 @@ def call_main(details):
     dyn_hidden_dim = config_dict.pop("dyn_hidden_dim", 64)
     dyn_num_layers = config_dict.pop("dyn_num_layers", 3)
     dyn_lr = config_dict.pop("dyn_lr", 1e-3)
-    dyn_epochs = config_dict.pop("dyn_epochs", 100)
+    dyn_epochs = config_dict.pop("dyn_epochs", 300)
     cbf_alpha = config_dict.pop("cbf_alpha", 1.0)
 
     agent = globals()[model_cls].create(
@@ -207,21 +246,20 @@ def call_main(details):
     print("Value function training complete.\n")
 
     # --- Phase 2: Train BC policy (PyTorch) ---
-    print("========== Phase 2: Training BC Policy ==========")
-    bc_policy = train_bc_policy(
-        ds, state_dim, action_dim,
-        hidden_dim=bc_hidden_dim, num_layers=bc_num_layers,
-        lr=bc_lr, epochs=bc_epochs
-    )
-    # Save BC policy
-    bc_path = f"./results/{details['group']}/{details['experiment_name']}/bc_policy.pt"
-    torch.save(bc_policy.state_dict(), bc_path)
-    print(f"  BC policy saved to {bc_path}")
+    # print("========== Phase 2: Training BC Policy ==========")
+    # bc_policy = train_bc_policy(
+    #     ds, state_dim, action_dim,
+    #     hidden_dim=bc_hidden_dim, num_layers=bc_num_layers,
+    #     lr=bc_lr, epochs=bc_epochs
+    # )
+    # # Save BC policy
+    # bc_path = f"./results/{details['group']}/{details['experiment_name']}/bc_policy.pt"
+    # torch.save(bc_policy.state_dict(), bc_path)
+    # print(f"  BC policy saved to {bc_path}")
 
     # --- Phase 3: Train dynamics model (PyTorch) ---
     print("========== Phase 3: Training Dynamics Model ==========")
-    # Estimate dt from data (time between steps)
-    dt = 1.0 / env_max_steps  # Rough approximation
+    dt = 0.05
     dynamics_model = train_dynamics_model(
         ds, state_dim, action_dim,
         hidden_dim=dyn_hidden_dim, num_layers=dyn_num_layers,
@@ -238,7 +276,7 @@ def call_main(details):
 
     eval_info = evaluate_cbf(
         env, details['eval_episodes'], bc_policy, V_net, dynamics_model,
-        env_max_steps, deterministic=True
+        env_max_steps, deterministic=True, cbf_alpha=cbf_alpha
     )
     print(f"\nEvaluation results:")
     for k, v in eval_info.items():
@@ -262,7 +300,6 @@ def main(_):
         parameters['max_steps'] = 100001
         parameters['batch_size'] = 256
         parameters['eval_interval'] = 25000
-        parameters['agent_kwargs']['cost_ub'] = 150
 
     print(parameters)
 

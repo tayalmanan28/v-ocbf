@@ -50,7 +50,40 @@ class DSRLDataset(Dataset):
             del dataset_dict['timeouts']
 
             if critic_type == "hj":
-                dataset_dict['costs'] = np.where(dataset_dict['costs']>0, 1*cost_scale, -1)
+                # Compute continuous h = -(velocity - velocity_threshold)
+                # h > 0 when velocity < threshold (safe)
+                # h < 0 when velocity > threshold (unsafe)
+                env_id = env.spec.id.lower() if env.spec else ""
+                states = dataset_dict['observations']
+
+                # Extract velocity from observations based on environment
+                if 'ant' in env_id:
+                    vx = states[:, 13]
+                    vy = states[:, 14]
+                    velocity = np.sqrt(vx**2 + vy**2)
+                    velocity_threshold = 2.6222
+                elif 'halfcheetah' in env_id:
+                    velocity = states[:, 8]
+                    velocity_threshold = 3.2096
+                elif 'hopper' in env_id:
+                    velocity = states[:, 5]
+                    velocity_threshold = 0.7402
+                elif 'walker2d' in env_id:
+                    velocity = states[:, 8]
+                    velocity_threshold = 2.3415
+                elif 'swimmer' in env_id:
+                    velocity = states[:, 3]
+                    velocity_threshold = 0.2282
+                else:
+                    raise ValueError(f"Unknown velocity env: {env_id}. "
+                                     "Cannot compute h for CBF.")
+
+                h_values = -(velocity - velocity_threshold)
+                print(f"  Velocity env: {env_id}")
+                print(f"  velocity_threshold: {velocity_threshold}")
+                print(f"  h stats: min={h_values.min():.4f}, max={h_values.max():.4f}, "
+                      f"mean={h_values.mean():.4f}, frac_safe={np.mean(h_values > 0):.4f}")
+                dataset_dict['costs'] = h_values
 
         if clip_to_eps:
             lim = 1 - eps
