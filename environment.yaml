@@ -1,4 +1,4 @@
-name: FISOR
+name: VOCBF
 channels:
   - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
   - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
@@ -139,4 +139,4 @@ dependencies:
     - xmltodict==0.13.0
     - yapf==0.40.1
     - zipp==3.16.2
-prefix: /home/air-rl/anaconda3/envs/FISOR
+prefix: /home/air-rl/anaconda3/envs/VOCBF

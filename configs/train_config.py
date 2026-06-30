@@ -7,7 +7,7 @@ def get_config(config_string):
         max_steps=1000001,
         eval_episodes=20,
         batch_size=1024, # Critic mini-batch is fixed to 256
-        log_interval=25000,
+        log_interval=250000,
         eval_interval=250000,
         normalize_returns=True,
     )
@@ -22,18 +22,15 @@ def get_config(config_string):
     )
 
     possible_structures = {
-        "fisor": ConfigDict(
+        "vocbf": ConfigDict(
             dict(
                 agent_kwargs=dict(
-                    model_cls="FISOR",
-                    cost_limit=10,
+                    model_cls="VOCBF",
+                    cost_limit=10,  # DSRL env target cost (used by wrap_gym)
                     critic_lr=3e-4,
                     value_lr=3e-4,
-                    critic_objective='expectile',
-                    critic_hyperparam=0.9,
                     cost_critic_hyperparam=0.9,
                     critic_type="hj",  # [hj, qc]
-                    cost_ub=150,
                     value_layer_norm=False,
                     # BC policy training (PyTorch)
                     bc_hidden_dim=256,
@@ -44,7 +41,7 @@ def get_config(config_string):
                     dyn_hidden_dim=64,
                     dyn_num_layers=3,
                     dyn_lr=1e-3,
-                    dyn_epochs=100,
+                    dyn_epochs=500,
                     # CBF evaluation
                     cbf_alpha=1.0,
                 ),

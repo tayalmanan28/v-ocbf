@@ -102,7 +102,7 @@ def plot_cbf(ax, agent, cb=False):
     # Zero-level contour (Vc = 0  ↔  safe / unsafe boundary)
     ct_line = ax.contour(
         x1_grid, x2_grid, value_square,
-        levels=[0],
+        levels=[0.2],
         colors="#32ABD6",
         linewidths=2.0,
         linestyles="solid",
