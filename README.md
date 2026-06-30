@@ -70,13 +70,14 @@ Model checkpoints and training logs are saved automatically to the `results/` di
 If you find this code or our paper useful in your research, please consider citing our work:
 
 ```bibtex
-@inproceedings{
-tayal2024vocbf,
-title={V-OCBF: Learning Safety Filters from Offline Data via Value-Guided Offline Control Barrier Functions},
+@article{
+tayal2026vocbf,
+title={V-{OCBF}: Learning Safety Filters from Offline Data via Value-Guided Offline Control Barrier Functions},
 author={Mumuksh Tayal and Manan Tayal and Aditya Singh and Shishir Kolathaya and Ravi Prakash},
-booktitle={Conference Name},
-year={2024},
-url={https://openreview.net/forum?id=PGO9mpIyyb}
+journal={Transactions on Machine Learning Research},
+issn={2835-8856},
+year={2026},
+url={https://openreview.net/forum?id=PGO9mpIyyb},
 }
 ```
 
