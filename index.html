@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en" class="fontawesome-i2svg-active fontawesome-i2svg-complete">
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="">
+  <meta name="keywords" content="HJB PDE, Safety, Co-optimization">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>V-OCBF</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/iisc_logo.png">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      jax: ["input/TeX", "output/HTML-CSS"],
+      extensions: ["tex2jax.js"],
+      "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] },
+      tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+      TeX: { noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+      messageStyle: "none"
+    });
+    </script>    
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"></script>
+</head>
+<body>
+
+ <!-- <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <img src="./static/images/iisc_logo.png" width="10%" alt="IISc Logo" align="center"/>
+        <div class="columns is-centered"></div>
+      </div>
+    </div>
+ </section> -->
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">    
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">V-OCBF: Learning Safety Filters from Offline Data via Value-Guided Offline Control Barrier Functions</h1>
+            <!-- <h1 class="title is-4 publication-title"><a href="https://icml.cc/virtual/2025/poster/45200"> 42nd International Conference on Machine Learning (ICML), 2025</a></h1> -->
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">
+                <a href="https://mumukshtayal.github.io/">Mumuksh Tayal</a><sup>1*</sup>,
+              </span>
+              <span class="author-block">
+                <a href="https://tayalmanan28.github.io/">Manan Tayal</a><sup>1*</sup>,
+              </span>
+              <span class="author-block">
+                <a href="https://adi-metal.github.io/">Aditya Singh</a><sup>2</sup>,
+              </span>
+              <span class="author-block">
+                <a href="https://www.shishirny.com/">Shishir Kolathaya</a><sup>1</sup>,
+              </span>
+              <span class="author-block">
+                <a href="https://ravipr009.github.io/">Ravi Prakash</a><sup>1</sup>
+              </span>
+              
+            </div>
+
+            <h1 class="title is-4 publication-title"><a href="https://openreview.net/forum?id=PGO9mpIyyb"> Transactions on Machine Learning Research</a></h1>
+  
+            <div class="is-size-5 publication-authors">
+              
+              <span class="author-block"><sup>1</sup> Indian Institute of Science (IISc), India</span> <br>
+              <span class="author-block"><sup>2</sup> University of Pennsylvania, USA</span><br>
+              <span class="author-block"><sup>*</sup> denotes equal first author contribution </span>
+              <span class="author-block"> </span>
+            </div>
+            
+            
+  
+            <div class="column has-text-centered">
+              <div class="publication-links">
+                <!-- PDF Link. -->
+                <span class="link-block">
+                  <a href="https://arxiv.org/pdf/2512.10822"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </span>
+                    <span>Paper</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://arxiv.org/abs/2512.10822"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                        <i class="ai ai-arxiv"></i>
+                    </span>
+                    <span>arXiv</span>
+                  </a>
+                </span>
+                <!-- Video Link. -->
+                <!-- <span class="link-block">
+                  <a href="https://tayalmanan28.github.io/piml-soc/"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                        <i class="fab fa-youtube"></i>
+                    </span>
+                    <span>Video</span>
+                  </a>
+                </span> -->
+                <!-- Code -->
+                <span class="link-block">
+                  <a href="https://github.com/tayalmanan28/v-ocbf"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                        <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code</span>
+                    </a>
+                </span>
+                <!-- Open Review -->
+                <span class="link-block">
+                  <a href="https://openreview.net/forum?id=PGO9mpIyyb"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <img src="https://openreview.net/favicon.ico"
+                    alt="OpenReview Logo"
+                    style="width:1em; height:1em; vertical-align:middle;">
+                    </span>
+                    <span>OpenReview</span>
+                  </a>
+                </span>
+
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hero is-light">
+    <div class="hero-body">
+      <div class="container is-max-desktop">    
+        <div class="columns is-centered has-text-centered">
+            <div class="column">
+              <h2 class="title is-3">Abstract </h2>
+            </div>
+        </div>
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+          <div class="content has-text-justified" style="padding-top: 1%">
+            <p>
+              Ensuring safety in autonomous systems requires controllers that aim to satisfy state-wise constraints without relying on online interaction. While existing Safe Offline RL methods typically enforce soft expected-cost constraints, they struggle to ensure strict state-wise safety. Conversely, Control Barrier Functions (CBFs) offer a principled mechanism to enforce forward invariance, but often rely on expert-designed barrier functions or knowledge of the system dynamics. We introduce Value-Guided Offline Control Barrier Functions (V-OCBF), a framework that learns a neural CBF entirely from offline demonstrations. Unlike prior approaches, V-OCBF does not assume access to the dynamics model; instead, it derives a recursive finite-difference barrier update, enabling model-free learning of a barrier that propagates safety information over time. Moreover, V-OCBF incorporates an expectile-based objective that avoids querying the barrier on out-of-distribution actions and restricts updates to the dataset-supported action set. The learned barrier is then used with a Quadratic Program (QP) formulation to synthesize real-time safe control. Across multiple case studies, V-OCBF yields substantially fewer safety violations than baseline methods while maintaining strong task performance, highlighting its scalability for offline synthesis of safety-critical controllers without online interaction or hand-engineered barriers.
+            </p>
+          </div>
+          </div>          
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">    
+        <div class="columns is-centered has-text-centered">
+            <div class="column" style="padding-bottom: 5%">
+              <h2 class="title is-3"> Algorithm </h2>
+            </div>
+        </div>
+        <div class="columns is-centered has-text-centered">
+          <div class="column">
+            <img src="images/Algorithm_VOCBF.jpg" width="100%" style="padding-right: 2%">
+          </div>
+        </div>
+        
+        
+  
+      </div>
+    </div>
+  </section>
+  
+  
+  <section class="hero is-light">
+    <div class="hero-body">
+      <div class="container is-max-desktop">    
+        <div class="columns is-centered has-text-centered">
+            <div class="column">
+              <h2 class="title is-3">Qualitative Comparison</h2>
+            </div>
+        </div>
+        <div class="columns is-centered has-text-centered">
+          <div class="column">
+            <img src="images/Comparision.gif" width="100%" style="padding-right: 2%">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>
+    @article{
+    tayal2026vocbf,
+    title={V-{OCBF}: Learning Safety Filters from Offline Data via Value-Guided Offline Control Barrier Functions},
+    author={Mumuksh Tayal and Manan Tayal and Aditya Singh and Shishir Kolathaya and Ravi Prakash},
+    journal={Transactions on Machine Learning Research},
+    issn={2835-8856},
+    year={2026},
+    url={https://openreview.net/forum?id=PGO9mpIyyb},
+    }
+
+    </code></pre>
+  </div>
+</section>
+
+  
+  <footer class="footer">
+    <div class="container">
+      <div class="content has-text-centered">
+        <a class="icon-link"
+           href="https://arxiv.org/pdf/2512.10822">
+          <i class="fas fa-file-pdf"></i>
+        </a>
+        <a class="icon-link" href="https://github.com/tayalmanan28" class="external-link" disabled>
+          <i class="fab fa-github"></i>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
