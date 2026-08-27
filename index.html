@@ -1,12 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" class="fontawesome-i2svg-active fontawesome-i2svg-complete">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="description"
-        content="">
-  <meta name="keywords" content="HJB PDE, Safety, Co-optimization">
+        content="V-OCBF: a framework that learns a neural Control Barrier Function entirely from offline demonstrations, without a dynamics model, using a recursive finite-difference barrier update and an expectile-based objective for real-time safe control via CBF-QP.">
+  <meta name="keywords" content="HJB PDE, Safety, Control Barrier Functions, Offline Reinforcement Learning, Safety Filters, Expectile Regression">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>V-OCBF</title>
+
+  <meta property="og:title" content="V-OCBF: Learning Safety Filters from Offline Data via Value-Guided Offline Control Barrier Functions">
+  <meta property="og:description" content="A neural Control Barrier Function learned entirely from offline demonstrations, with no dynamics model, via a recursive finite-difference barrier update and an expectile objective restricted to dataset-supported actions.">
+  <meta property="og:image" content="./images/Algorithm_VOCBF.jpg">
+  <meta name="twitter:card" content="summary_large_image">
 
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
         rel="stylesheet">
@@ -29,32 +34,84 @@
     MathJax.Hub.Config({
       jax: ["input/TeX", "output/HTML-CSS"],
       extensions: ["tex2jax.js"],
-      "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] },
+      "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], scale: 95 },
       tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
       TeX: { noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
       messageStyle: "none"
     });
-    </script>    
+    </script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"></script>
+
+  <style>
+    body { font-family: 'Noto Sans', sans-serif; }
+    .publication-title, .title, h1, h2, h3 { font-family: 'Google Sans', sans-serif; }
+
+    /* ---- narrow, readable content column ---- */
+    .paper-body { max-width: 800px; margin: 0 auto; }
+    .paper-body p { font-size: 1.05rem; line-height: 1.7; text-align: justify; margin-bottom: 1.1em; }
+    .paper-body ul { margin-top: 0.4em; }
+    .paper-body li { font-size: 1.05rem; line-height: 1.7; margin-bottom: 0.55em; }
+
+    section.section { padding: 2.2rem 1.5rem; }
+    .section-title { font-size: 1.9rem !important; margin-bottom: 1.2rem !important; }
+    .section-title::after {
+      content: ""; display: block; width: 46px; height: 3px;
+      background: #3273dc; margin-top: 0.45rem; border-radius: 2px;
+    }
+    .subsection-title { font-size: 1.2rem !important; font-weight: 700; margin: 1.8rem 0 0.6rem 0; color: #363636; }
+
+    /* ---- header ---- */
+    .venue-badge {
+      display: inline-block; margin: 0.4rem 0 1.1rem 0; padding: 0.35em 0.9em;
+      border: 1.5px solid #3273dc; border-radius: 999px; color: #2058a8;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .venue-badge a { color: inherit; }
+    .publication-links .link-block { display: inline-block; margin: 0.2rem 0.15rem; }
+
+    /* ---- TL;DR box ---- */
+    .tldr {
+      background: #f0f6ff; border-left: 4px solid #3273dc;
+      border-radius: 6px; padding: 1.1rem 1.4rem 0.9rem 1.4rem; margin-bottom: 1.4rem;
+    }
+    .tldr ul { margin-left: 1.1rem; }
+    .tldr li::marker { color: #3273dc; }
+
+    /* ---- figures ---- */
+    figure.fig { margin: 1.6rem 0 1.2rem 0; }
+    figure.fig img { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+    figure.fig figcaption {
+      font-size: 0.92rem; color: #5a5a5a; line-height: 1.55;
+      margin-top: 0.85rem; text-align: justify;
+    }
+    figure.fig figcaption b { color: #363636; }
+
+    /* ---- misc ---- */
+    .hl-safe { color: #158f6f; font-weight: 600; }
+    .hl-unsafe { color: #8e2b6b; font-weight: 600; }
+
+    pre code { font-size: 0.85rem; }
+    @media screen and (max-width: 600px) {
+      .paper-body p, .paper-body li { font-size: 1rem; text-align: left; }
+      .section-title { font-size: 1.55rem !important; }
+    }
+  </style>
 </head>
 <body>
 
- <!-- <section class="hero">
-    <div class="hero-body">
-      <div class="container is-max-desktop">
-        <img src="./static/images/iisc_logo.png" width="10%" alt="IISc Logo" align="center"/>
-        <div class="columns is-centered"></div>
-      </div>
-    </div>
- </section> -->
-
+  <!-- ==================== TITLE ==================== -->
   <section class="hero">
     <div class="hero-body">
       <div class="container is-max-desktop">
-        <div class="columns is-centered">    
+        <div class="columns is-centered">
           <div class="column has-text-centered">
-            <h1 class="title is-1 publication-title">V-OCBF: Learning Safety Filters from Offline Data via Value-Guided Offline Control Barrier Functions</h1>
-            <!-- <h1 class="title is-4 publication-title"><a href="https://icml.cc/virtual/2025/poster/45200"> 42nd International Conference on Machine Learning (ICML), 2025</a></h1> -->
+            <h1 class="title is-1 publication-title" style="font-size: 2.5rem;">
+              V-OCBF
+            </h1>
+            <p class="is-size-5" style="color:#4a4a4a; margin-bottom: 1.2rem;">
+              Learning Safety Filters from Offline Data via Value-Guided Offline Control Barrier Functions
+            </p>
+
             <div class="is-size-5 publication-authors">
               <span class="author-block">
                 <a href="https://mumukshtayal.github.io/">Mumuksh Tayal</a><sup>1*</sup>,
@@ -71,171 +128,244 @@
               <span class="author-block">
                 <a href="https://ravipr009.github.io/">Ravi Prakash</a><sup>1</sup>
               </span>
-              
             </div>
 
-            <h1 class="title is-4 publication-title"><a href="https://openreview.net/forum?id=PGO9mpIyyb"> Transactions on Machine Learning Research</a></h1>
-  
-            <div class="is-size-5 publication-authors">
-              
-              <span class="author-block"><sup>1</sup> Indian Institute of Science (IISc), India</span> <br>
+            <div class="is-size-6 publication-authors" style="margin-top: 0.5rem;">
+              <span class="author-block"><sup>1</sup> Indian Institute of Science (IISc), India</span><br>
               <span class="author-block"><sup>2</sup> University of Pennsylvania, USA</span><br>
-              <span class="author-block"><sup>*</sup> denotes equal first author contribution </span>
-              <span class="author-block"> </span>
+              <span class="author-block" style="color:#7a7a7a;"><sup>*</sup> denotes equal first author contribution</span>
             </div>
-            
-            
-  
-            <div class="column has-text-centered">
-              <div class="publication-links">
-                <!-- PDF Link. -->
-                <span class="link-block">
-                  <a href="https://arxiv.org/pdf/2512.10822"
-                     class="external-link button is-normal is-rounded is-dark">
-                    <span class="icon">
-                        <i class="fas fa-file-pdf"></i>
-                    </span>
-                    <span>Paper</span>
-                  </a>
-                </span>
-                <span class="link-block">
-                  <a href="https://arxiv.org/abs/2512.10822"
-                     class="external-link button is-normal is-rounded is-dark">
-                    <span class="icon">
-                        <i class="ai ai-arxiv"></i>
-                    </span>
-                    <span>arXiv</span>
-                  </a>
-                </span>
-                <!-- Video Link. -->
-                <!-- <span class="link-block">
-                  <a href="https://tayalmanan28.github.io/piml-soc/"
-                     class="external-link button is-normal is-rounded is-dark">
-                    <span class="icon">
-                        <i class="fab fa-youtube"></i>
-                    </span>
-                    <span>Video</span>
-                  </a>
-                </span> -->
-                <!-- Code -->
-                <span class="link-block">
-                  <a href="https://github.com/tayalmanan28/v-ocbf"
-                    class="external-link button is-normal is-rounded is-dark">
-                    <span class="icon">
-                        <i class="fab fa-github"></i>
-                    </span>
-                    <span>Code</span>
-                    </a>
-                </span>
-                <!-- Open Review -->
-                <span class="link-block">
-                  <a href="https://openreview.net/forum?id=PGO9mpIyyb"
-                    class="external-link button is-normal is-rounded is-dark">
-                    <span class="icon">
-                      <img src="https://openreview.net/favicon.ico"
-                    alt="OpenReview Logo"
-                    style="width:1em; height:1em; vertical-align:middle;">
-                    </span>
-                    <span>OpenReview</span>
-                  </a>
-                </span>
 
-              </div>
+            <div class="venue-badge">
+              <a href="https://openreview.net/forum?id=PGO9mpIyyb">Transactions on Machine Learning Research (TMLR), 2026</a>
+            </div>
+
+            <div class="publication-links">
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/2512.10822"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2512.10822"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="ai ai-arxiv"></i></span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://openreview.net/forum?id=PGO9mpIyyb"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <img src="https://openreview.net/favicon.ico" alt="OpenReview"
+                         style="width:1em; height:1em; vertical-align:middle;">
+                  </span>
+                  <span>OpenReview</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://github.com/tayalmanan28/v-ocbf"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fab fa-github"></i></span>
+                  <span>Code</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="#BibTeX" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-quote-left"></i></span>
+                  <span>BibTeX</span>
+                </a>
+              </span>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="hero is-light">
-    <div class="hero-body">
-      <div class="container is-max-desktop">    
-        <div class="columns is-centered has-text-centered">
-            <div class="column">
-              <h2 class="title is-3">Abstract </h2>
-            </div>
-        </div>
-        <div class="columns is-centered has-text-centered">
-          <div class="column is-four-fifths">
-          <div class="content has-text-justified" style="padding-top: 1%">
-            <p>
-              Ensuring safety in autonomous systems requires controllers that aim to satisfy state-wise constraints without relying on online interaction. While existing Safe Offline RL methods typically enforce soft expected-cost constraints, they struggle to ensure strict state-wise safety. Conversely, Control Barrier Functions (CBFs) offer a principled mechanism to enforce forward invariance, but often rely on expert-designed barrier functions or knowledge of the system dynamics. We introduce Value-Guided Offline Control Barrier Functions (V-OCBF), a framework that learns a neural CBF entirely from offline demonstrations. Unlike prior approaches, V-OCBF does not assume access to the dynamics model; instead, it derives a recursive finite-difference barrier update, enabling model-free learning of a barrier that propagates safety information over time. Moreover, V-OCBF incorporates an expectile-based objective that avoids querying the barrier on out-of-distribution actions and restricts updates to the dataset-supported action set. The learned barrier is then used with a Quadratic Program (QP) formulation to synthesize real-time safe control. Across multiple case studies, V-OCBF yields substantially fewer safety violations than baseline methods while maintaining strong task performance, highlighting its scalability for offline synthesis of safety-critical controllers without online interaction or hand-engineered barriers.
-            </p>
-          </div>
-          </div>          
-        </div>
+  <!-- ==================== TEASER ==================== -->
+  <section class="section" style="padding-top: 0;">
+    <div class="paper-body">
+      <figure class="fig">
+        <img src="images/Algorithm_VOCBF.jpg" alt="V-OCBF framework overview">
+        <figcaption>
+          <b>V-OCBF in one picture.</b> <i>Phase 1 (training):</i> a control-affine dynamics model
+          $f_\phi, g_\phi$ is fit to offline transitions, and a barrier network $B(x)$ is trained toward
+          the reachability Bellman target $B^{\mathcal{D}}(x_t) = \min\{\ell(x_t),\, B^{\mathcal{D}}(x_{t+1})\}$
+          using an expectile regression loss $\mathcal{L}^\tau$. <i>Phase 2 (inference):</i> a reference
+          controller's unsafe action sequence is corrected in real time by a CBF-QP built on the learned
+          barrier and dynamics, projecting each action to the nearest one that keeps
+          $\nabla B(x)^{\!\top}(f(x)+g(x)u) \ge -\alpha(B(x))$.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ==================== OVERVIEW ==================== -->
+  <section class="section" style="padding-top: 0;">
+    <div class="paper-body">
+      <h2 class="title section-title">Overview</h2>
+      <div class="tldr">
+        <ul>
+          <li><b>No dynamics model, no hand-designed barrier.</b> Classical Control Barrier Functions
+              need an expert-designed candidate barrier and knowledge of the system dynamics. V-OCBF
+              learns both a control-affine dynamics model and the barrier itself, purely from a fixed
+              offline dataset of demonstrations.</li>
+          <li><b>State-wise safety, not an expected-cost budget.</b> Safe offline RL methods typically
+              enforce a soft, expectation-level cost constraint. V-OCBF instead targets forward
+              invariance directly, propagating the worst-case safety margin backward through time via a
+              recursive finite-difference barrier update.</li>
+          <li><b>Stays inside the data.</b> An expectile-based objective avoids querying the barrier on
+              out-of-distribution actions, restricting learning to the dataset-supported action set
+              &mdash; then the learned barrier drives a real-time CBF-QP safety filter at deployment.</li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <section class="hero">
-    <div class="hero-body">
-      <div class="container is-max-desktop">    
-        <div class="columns is-centered has-text-centered">
-            <div class="column" style="padding-bottom: 5%">
-              <h2 class="title is-3"> Algorithm </h2>
-            </div>
-        </div>
-        <div class="columns is-centered has-text-centered">
-          <div class="column">
-            <img src="images/Algorithm_VOCBF.jpg" width="100%" style="padding-right: 2%">
-          </div>
-        </div>
-        
-        
-  
-      </div>
-    </div>
-  </section>
-  
-  
-  <section class="hero is-light">
-    <div class="hero-body">
-      <div class="container is-max-desktop">    
-        <div class="columns is-centered has-text-centered">
-            <div class="column">
-              <h2 class="title is-3">Qualitative Comparison</h2>
-            </div>
-        </div>
-        <div class="columns is-centered has-text-centered">
-          <div class="column">
-            <img src="images/Comparision.gif" width="100%" style="padding-right: 2%">
-          </div>
-        </div>
-      </div>
+  <!-- ==================== CHALLENGE ==================== -->
+  <section class="section" style="background-color: #fafafa;">
+    <div class="paper-body">
+      <h2 class="title section-title">Challenge</h2>
+      <p>
+        Autonomous systems need controllers that keep the state out of a failure set
+        $\mathcal{F} = \{x : \ell(x) > 0\}$ at <i>every</i> timestep &mdash; a state-wise hard constraint
+        &mdash; while acting entirely from a fixed offline dataset of demonstrations, with no further
+        online interaction with the environment.
+      </p>
+      <p>
+        <b>Safe Offline RL enforces the wrong kind of constraint.</b> Existing methods typically bound an
+        expected, discounted cost, $\mathbb{E}[\sum_t \gamma^t c(x_t)] \le l$. Satisfying safety
+        <i>in expectation</i> is not the same as never entering $\mathcal{F}$: a policy can hold the
+        average low while still visiting unsafe states on individual trajectories.
+      </p>
+      <p>
+        <b>Control Barrier Functions need what offline learning doesn't have.</b> CBFs give a principled
+        route to forward invariance, but classical constructions rely on an expert-designed candidate
+        barrier and, to enforce the CBF condition at run time, on knowing the system dynamics
+        &mdash; both of which are exactly what a purely offline, model-free setting withholds.
+      </p>
     </div>
   </section>
 
+  <!-- ==================== IDEA ==================== -->
+  <section class="section">
+    <div class="paper-body">
+      <h2 class="title section-title">Idea</h2>
+      <p>
+        V-OCBF learns a neural CBF entirely from offline demonstrations, without assuming access to a
+        dynamics model, by deriving a recursive finite-difference barrier update that propagates safety
+        information backward through time &mdash; then uses that barrier inside a standard CBF-QP for
+        real-time safe control.
+      </p>
 
-<section class="section" id="BibTeX">
-  <div class="container is-max-desktop content">
-    <h2 class="title">BibTeX</h2>
-    <pre><code>
-    @article{
-    tayal2026vocbf,
+      <h3 class="subsection-title">1. Model-free control-affine dynamics</h3>
+      <p>
+        A control-affine dynamics model $f_\phi, g_\phi$ is fit to offline transitions
+        $(x, u, x') \sim \mathcal{D}$ by one-step prediction:
+      </p>
+      $$
+      \mathcal{L}_{\text{dyn}}(\phi) = \mathbb{E}_{(x,u,x')\sim\mathcal{D}}
+      \Big[\big\|x' - \big(f_\phi(x) + g_\phi(x)u\big)\Delta t\big\|_2^2\Big],
+      \qquad x_{t+1} = x_t + \big(f_\phi(x_t) + g_\phi(x_t)u_t\big)\Delta t.
+      $$
+      <p>
+        This gives the affine structure a CBF condition needs to act on, without ever assuming the true
+        dynamics are known in closed form.
+      </p>
+
+      <h3 class="subsection-title">2. A value-guided barrier via reachability</h3>
+      <p>
+        The barrier $B(x)$ is trained toward a reachability Bellman target that takes the running
+        safety margin $\ell(x_t)$ whenever it exceeds what the future promises, and the (target-network)
+        barrier value otherwise:
+      </p>
+      $$
+      B^{\mathcal{D}}(x_t) = \min\big\{\, \ell(x_t),\ B^{\mathcal{D}}(x_{t+1}) \,\big\}.
+      $$
+      <p>
+        Because this recursion looks one step ahead using only the data already in $\mathcal{D}$, it is a
+        <i>model-free</i> finite-difference stand-in for the Hamilton&ndash;Jacobi safety value &mdash; no
+        dynamics model is queried to compute the target itself.
+      </p>
+
+      <h3 class="subsection-title">3. Expectile regression keeps learning in-distribution</h3>
+      <p>
+        Fitting $B(x)$ to $B^{\mathcal{D}}(x)$ by ordinary regression would implicitly require evaluating
+        the barrier on actions the dataset never took. V-OCBF instead uses an expectile loss
+        $\mathcal{L}^\tau\big(B^{\mathcal{D}}(x) - B(x)\big)$, which restricts the update to the
+        dataset-supported action set and avoids querying the barrier on out-of-distribution actions
+        &mdash; the same purely offline, in-sample principle that expectile-based methods use elsewhere in
+        offline RL, applied here to a safety value instead of a reward value.
+      </p>
+
+      <h3 class="subsection-title">4. Real-time safety filtering with a CBF-QP</h3>
+      <p>
+        At deployment, a reference controller $u_{\text{ref}} = \pi(\cdot \mid x)$ may propose an unsafe
+        action. The learned barrier and dynamics model are used to project it to the closest safe action
+        by solving a small quadratic program at every control step:
+      </p>
+      $$
+      \min_{u:\ \pi(\cdot\mid x) > 0}\ \|u - u_{\text{ref}}\|^2
+      \qquad \text{s.t.}\quad \nabla B(x)^{\!\top}\big(f(x) + g(x)u\big) \ge -\alpha\big(B(x)\big).
+      $$
+      <p>
+        Because $f$, $g$, and $B$ are all learned from offline data, the entire safety filter &mdash; from
+        barrier to safe control synthesis &mdash; is assembled without any online interaction or
+        hand-engineered barrier function.
+      </p>
+    </div>
+  </section>
+
+  <!-- ==================== EXPERIMENTS ==================== -->
+  <section class="section" style="background-color: #fafafa;">
+    <div class="paper-body">
+      <h2 class="title section-title">Qualitative Comparison</h2>
+      <figure class="fig">
+        <img src="images/Comparision.gif" alt="Qualitative comparison of V-OCBF against baseline methods">
+        <figcaption>
+          <b>V-OCBF versus baselines.</b> Across multiple case studies, V-OCBF yields substantially fewer
+          safety violations than baseline methods while maintaining strong task performance, without any
+          online interaction or hand-engineered barrier function.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ==================== BIBTEX ==================== -->
+  <section class="section" id="BibTeX">
+    <div class="paper-body">
+      <h2 class="title section-title">Citation</h2>
+      <pre><code>@article{tayal2026vocbf,
     title={V-{OCBF}: Learning Safety Filters from Offline Data via Value-Guided Offline Control Barrier Functions},
     author={Mumuksh Tayal and Manan Tayal and Aditya Singh and Shishir Kolathaya and Ravi Prakash},
     journal={Transactions on Machine Learning Research},
     issn={2835-8856},
     year={2026},
     url={https://openreview.net/forum?id=PGO9mpIyyb},
-    }
+}</code></pre>
+    </div>
+  </section>
 
-    </code></pre>
-  </div>
-</section>
-
-  
-  <footer class="footer">
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer" style="padding: 2rem 1.5rem 3rem 1.5rem;">
     <div class="container">
       <div class="content has-text-centered">
-        <a class="icon-link"
-           href="https://arxiv.org/pdf/2512.10822">
+        <a class="icon-link" href="https://arxiv.org/pdf/2512.10822" title="Paper">
           <i class="fas fa-file-pdf"></i>
         </a>
-        <a class="icon-link" href="https://github.com/tayalmanan28" class="external-link" disabled>
+        <a class="icon-link" href="https://arxiv.org/abs/2512.10822" title="arXiv">
+          <i class="ai ai-arxiv"></i>
+        </a>
+        <a class="icon-link" href="https://github.com/tayalmanan28/v-ocbf" title="Code">
           <i class="fab fa-github"></i>
         </a>
+        <p style="font-size: 0.85rem; color: #7a7a7a; margin-top: 1rem;">
+          Website template adapted from
+          <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>.
+        </p>
       </div>
     </div>
   </footer>
